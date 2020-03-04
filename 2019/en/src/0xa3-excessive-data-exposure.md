@@ -1,62 +1,48 @@
-API3:2019 Excessive Data Exposure
+API3:2019 过量数据暴露
 =================================
 
-| Threat agents/Attack vectors | Security Weakness | Impacts |
+| 威胁来源/攻击向量 | 安全弱点 | 影响 |
 | - | - | - |
-| API Specific : Exploitability **3** | Prevalence **2** : Detectability **2** | Technical **2** : Business Specific |
-| Exploitation of Excessive Data Exposure is simple, and is usually performed by sniffing the traffic to analyze the API responses, looking for sensitive data exposure that should not be returned to the user. | APIs rely on clients to perform the data filtering. Since APIs are used as data sources, sometimes developers try to implement them in a generic way without thinking about the sensitivity of the exposed data. Automatic tools usually can’t detect this type of vulnerability because it’s hard to differentiate between legitimate data returned from the API, and sensitive data that should not be returned without a deep understanding of the application. | Excessive Data Exposure commonly leads to exposure of sensitive data. |
+| API 特定 : 可利用性 **3** | 普遍性 **2** : 可检测性 **2** | 技术 **2** : 业务特定 |
+| 利用过量暴露的数据十分容易，通常通过嗅探流量分析API的响应获取不应该返回给用户的多余敏感信息。 | APIs 依赖客户端实现数据过滤。当APIs被用作数据源时，有时开发者会尝试将APIs用于通用的方法，而不去考虑所暴露数据的敏感性。自动化工具通常无法检测到该类脆弱性，因为在没有对应用有深入理解的情况下，很难区分API返回的合法数据和不应该返回的敏感数据。|过量的数据暴露通常导致敏感数据的泄露。|
 
-## Is the API Vulnerable?
+## API 脆弱么?
 
-The API returns sensitive data to the client by design. This data is usually
-filtered on the client side before being presented to the user. An attacker can
-easily sniff the traffic and see the sensitive data.
+基于设计，API将返回敏感数据至客户端，这些数据通常在展示给用户前被客户端过滤掉，因此攻击者
+可以非常容易地通过嗅探流量获取敏感信息。
 
-## Example Attack Scenarios
+## 攻击案例场景
 
-### Scenario #1
+### 场景 #1
 
-The mobile team uses the `/api/articles/{articleId}/comments/{commentId}`
-endpoint in the articles view to render comments metadata. Sniffing the mobile
-application traffic, an attacker finds out that other sensitive data related to
-comment’s author is also returned. The endpoint implementation uses a generic
-`toJSON()` method on the `User` model, which contains PII, to serialize the
-object.
+移动开发团队使用 `/api/articles/{articleId}/comments/{commentId}`端点在文章
+视图中展示元数据评论。通过嗅探移动应用流量，攻击者可以找出被返回的其他关于评论作者
+的敏感信息。端点通过在包含个人识别信息（PII）的`User` 模型上使用通用的`toJSON()`方法将
+对象序列化。
 
-### Scenario #2
+### 场景 #2
 
-An IOT-based surveillance system allows administrators to create users with
-different permissions. An admin created a user account for a new security guard
-that should only have access to specific buildings on the site. Once the
-security guard uses his mobile app, an API call is triggered to:
-`/api/sites/111/cameras` in order to receive data about the available cameras
-and show them on the dashboard. The response contains a list with details about
-cameras in the following format:
-`{"id":"xxx","live_access_token":"xxxx-bbbbb","building_id":"yyy"}`.
-While the client GUI shows only cameras which the security guard should have
-access to, the actual API response contains a full list of all the cameras in
-the site.
+基于物联网（IOT）的监控系统允许管理员创建具有不同权限的用户。当管理员为一个新的安保人员
+创建账户时，应当只分配站点上特定建筑的访问权限。当安保人员使用手机应用时，API会触发调用
+`/api/sites/111/cameras` 来接收可用摄像头传输的数据并显示在显示屏上。这个响应包含了
+一个`{"id":"xxx","live_access_token":"xxxx-bbbbb","building_id":"yyy"}`格式
+的包含摄像头细节的列表。因此，当客户端的图形化用户界面仅显示安保人员应当可以访问的界面时，
+实际上API返回了站点内所有摄像头的完整列表。
 
-## How To Prevent
+## 如何防止？
 
-* Never rely on the client side to filter sensitive data.
-* Review the responses from the API to make sure they contain only legitimate
-  data.
-* Backend engineers should always ask themselves "who is the
-  consumer of the data?" before exposing a new API endpoint.
-* Avoid using generic methods such as `to_json()` and `to_string()`.
-  Instead, cherry-pick specific properties you really want to return
-* Classify sensitive and personally identifiable information (PII) that
-  your application stores and works with, reviewing all API calls returning such
-  information to see if these responses pose a security issue.
-* Implement a schema-based response validation mechanism as an extra layer of
-  security. As part of this mechanism define and enforce data returned by all
-  API methods, including errors.
+* 不要依赖客户端来过滤敏感数据。
+* 检查API的响应，确认其中仅包含合法数据。
+* 在开放一个新的API端点前，后端工程师应当反复确认“谁才是真正的数据使用者？”
+* 避免使用`to_json()` 和`to_string()`之类的通用方法，而是优先选用你真正想要返回的特定属性。
+* 将你的应用存储和工作所使用的敏感信息及个人识别信息（PII）进行分类，并检查所有返回上述信息的
+  API 调用，确认这些响应是否构成安全问题。
+* 执行schema-based响应验证机制作为额外的安全措施。这种机制的部分功能定义并执行包括错误在内的
+  所有方法返回的数据。
 
+## 参考资料
 
-## References
-
-### External
+### 外部资料
 
 * [CWE-213: Intentional Information Exposure][1]
 
